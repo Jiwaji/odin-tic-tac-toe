@@ -1,0 +1,11 @@
+.gameboard {
+    display: grid;
+    grid-template-columns: 0fr 0fr 0fr;
+    gap: 0
+}
+
+.block {
+    height: 100px;
+    width: 100px;
+    font-size: 48px;
+}
