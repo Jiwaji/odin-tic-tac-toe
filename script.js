@@ -1,11 +1,9 @@
-let activePlayer = null
-let activeSymbol = 'x'
-const players = []
-const moves = [[], []]
-
 const gameBoard = (() => {
-    const getMessage = () => 'hello'
     const size = 3
+    let activePlayer = null
+    let activeSymbol = 'x'
+    const players = []
+    let moves = [[], []]
     const winConditions = [
         [1, 2, 3],
         [4, 5, 6],
@@ -16,6 +14,27 @@ const gameBoard = (() => {
         [1, 5, 9],
         [3, 5, 7],
     ]
+    const addPlayers = () => {
+        const player1 = playerFactory('Player 1')
+        const player2 = playerFactory('Player 2')
+
+        players.push(player1)
+        players.push(player2)
+    }
+    const setupGame = () => {
+        activePlayer = players[0]
+        activeSymbol = 'x'
+        moves = [[], []]
+        displayController.showMessage('Turn: ' + activePlayer.name)
+    }
+    const disableBlocks = () => {
+        document.querySelectorAll('.block').forEach( block => block.classList.add('disabled'))
+    }
+    const resetBoard = ()  => {
+        setupGame()
+        document.querySelector('.gameboard').textContent = ''
+        drawBoard()
+    }
     const drawBlock = () => {
         const block = document.createElement('button')
         block.classList.add('block')
@@ -27,8 +46,11 @@ const gameBoard = (() => {
                 moves[activePlayerIndex].push(e.target.getAttribute('data-index')) 
                 activePlayer = activePlayer === players[0] ? players[1] : players[0]
                 e.target.classList.add('active')
-                displayController.showMessage()
-                gameBoard.checkWin()
+                displayController.showMessage('Turn: ' + activePlayer.name)
+                const gameOver = gameBoard.checkWin()
+                if(gameOver) {
+                    disableBlocks()
+                }
             }
         })
         return block
@@ -49,20 +71,25 @@ const gameBoard = (() => {
         }
     }
     const checkWin = () => {
+        let gameOver = false
         winConditions.map((condition) => {
             if(condition.every((move) => moves[0].includes(String(move)))) {
-                console.log('player 1 win')
+                displayController.showMessage('Player 1 Wins')
+                gameOver = true
             }
             if(condition.every((move) => moves[1].includes(String(move)))) {
-                console.log('player 2 win')
+                displayController.showMessage('Player 2 Wins')
+                gameOver = true
             }
-            console.log('out')
         })
+        return gameOver
     }
     return {
-        getMessage,
+        addPlayers,
+        setupGame,
         drawBoard,
-        checkWin
+        checkWin,
+        resetBoard,
     }
 })()
 
@@ -71,9 +98,9 @@ const displayController = (() => {
     const getDisplay = () => {
         return document.querySelector('.display')
     }
-    const showMessage = () => {
+    const showMessage = (message) => {
         const display = getDisplay()
-        display.textContent = 'Turn: ' + activePlayer.name
+        display.textContent = message
     }
     return {
         getMessage,
@@ -87,17 +114,13 @@ const playerFactory = (name) => {
     }
 }
 
-const player1 = playerFactory('Player 1')
+gameBoard.addPlayers()
+gameBoard.setupGame()
+gameBoard.drawBoard()
 
-const player2 = playerFactory('Player 2')
-
-players.push(player1)
-players.push(player2)
-
-activePlayer = player1
-
-displayController.showMessage()
-console.log(gameBoard.drawBoard())
-console.log(displayController.getMessage())
-console.log(player1.name)
+const reset = document.querySelector('.reset')
+reset.addEventListener('click', (e) => {
+    gameBoard.setupGame()
+    gameBoard.resetBoard()
+})
 
