@@ -1,7 +1,5 @@
-const gameBoard = (() => {
-    const size = 3
+const game = (() => {
     let activePlayer = null
-    let activeSymbol = 'x'
     const players = []
     let moves = [[], []]
     const winConditions = [
@@ -15,8 +13,8 @@ const gameBoard = (() => {
         [3, 5, 7],
     ]
     const addPlayers = () => {
-        const player1 = playerFactory('Player 1')
-        const player2 = playerFactory('Player 2')
+        const player1 = playerFactory('Player 1', 'x')
+        const player2 = playerFactory('Player 2', 'o')
 
         players.push(player1)
         players.push(player2)
@@ -27,13 +25,56 @@ const gameBoard = (() => {
         moves = [[], []]
         displayController.showMessage('Turn: ' + activePlayer.name)
     }
+    const updateGame = (move) => {
+        const activePlayerIndex = players.findIndex((player) => player === activePlayer)
+        moves[activePlayerIndex].push(move)
+        activePlayer = activePlayer === players[0] ? players[1] : players[0]
+        displayController.showMessage('Turn: ' + activePlayer.name)
+    }
+    const status = () => {
+        let gameOver = false
+        winConditions.map((condition) => {
+            if(condition.every((move) => moves[0].includes(String(move)))) {
+                displayController.showMessage('Player 1 Wins')
+                gameOver = true
+            }
+            if(condition.every((move) => moves[1].includes(String(move)))) {
+                displayController.showMessage('Player 2 Wins')
+                gameOver = true
+            }
+            if(document.querySelectorAll('.active').length === 9) {
+                displayController.showMessage('Its a DRAW')
+                gameOver = true
+            }
+
+        })
+        return gameOver
+    }
+    return {
+        addPlayers,
+        setupGame,
+        updateGame,
+        status,
+        activePlayer,
+        players,
+        moves
+    }
+})()
+
+const gameBoard = (() => {
+    const size = 3
+    let activeSymbol = 'x'
     const disableBlocks = () => {
         document.querySelectorAll('.block').forEach( block => block.classList.add('disabled'))
     }
     const resetBoard = ()  => {
-        setupGame()
+        game.setupGame()
+        activeSymbol = 'x'
         document.querySelector('.gameboard').textContent = ''
         drawBoard()
+    }
+    const updateSymbol = () => {
+        activeSymbol = activeSymbol === 'x' ? 'o' : 'x';
     }
     const drawBlock = () => {
         const block = document.createElement('button')
@@ -42,21 +83,15 @@ const gameBoard = (() => {
             if(!e.target.classList.contains('active')) {
                 block.textContent = activeSymbol
                 updateSymbol()
-                const activePlayerIndex = players.findIndex((player) => player === activePlayer)
-                moves[activePlayerIndex].push(e.target.getAttribute('data-index')) 
-                activePlayer = activePlayer === players[0] ? players[1] : players[0]
                 e.target.classList.add('active')
-                displayController.showMessage('Turn: ' + activePlayer.name)
-                const gameOver = gameBoard.checkWin()
+                game.updateGame(e.target.getAttribute('data-index'))
+                const gameOver = game.status()
                 if(gameOver) {
                     disableBlocks()
                 }
             }
         })
         return block
-    }
-    const updateSymbol = () => {
-        activeSymbol = activeSymbol === 'x' ? 'o' : 'x';
     }
     const drawBoard = () => {
         const board = document.querySelector('.gameboard')
@@ -70,25 +105,8 @@ const gameBoard = (() => {
             }
         }
     }
-    const checkWin = () => {
-        let gameOver = false
-        winConditions.map((condition) => {
-            if(condition.every((move) => moves[0].includes(String(move)))) {
-                displayController.showMessage('Player 1 Wins')
-                gameOver = true
-            }
-            if(condition.every((move) => moves[1].includes(String(move)))) {
-                displayController.showMessage('Player 2 Wins')
-                gameOver = true
-            }
-        })
-        return gameOver
-    }
     return {
-        addPlayers,
-        setupGame,
         drawBoard,
-        checkWin,
         resetBoard,
     }
 })()
@@ -108,19 +126,20 @@ const displayController = (() => {
     }
 })()
 
-const playerFactory = (name) => {
+const playerFactory = (name, symbol) => {
     return {
-        name
+        name,
+        symbol
     }
 }
 
-gameBoard.addPlayers()
-gameBoard.setupGame()
+game.addPlayers()
+game.setupGame()
 gameBoard.drawBoard()
 
 const reset = document.querySelector('.reset')
-reset.addEventListener('click', (e) => {
-    gameBoard.setupGame()
+reset.addEventListener('click', () => {
+    game.setupGame()
     gameBoard.resetBoard()
 })
 
