@@ -1,6 +1,6 @@
 const game = (() => {
     let activePlayer = null
-    const players = []
+    let players = []
     let moves = [[], []]
     const winConditions = [
         [1, 2, 3],
@@ -12,16 +12,12 @@ const game = (() => {
         [1, 5, 9],
         [3, 5, 7],
     ]
-    const addPlayers = () => {
-        const player1 = playerFactory('Player 1', 'x')
-        const player2 = playerFactory('Player 2', 'o')
-
+    const addPlayers = (player1, player2) => {
         players.push(player1)
         players.push(player2)
     }
     const setupGame = () => {
         activePlayer = players[0]
-        activeSymbol = 'x'
         moves = [[], []]
         displayController.showMessage('Turn: ' + activePlayer.name)
     }
@@ -30,6 +26,10 @@ const game = (() => {
         moves[activePlayerIndex].push(move)
         activePlayer = activePlayer === players[0] ? players[1] : players[0]
         displayController.showMessage('Turn: ' + activePlayer.name)
+    }
+    const switchPlayers = () => {
+        const [player1, player2] = players
+        players = [player2, player1]
     }
     const status = () => {
         let gameOver = false
@@ -55,6 +55,7 @@ const game = (() => {
         setupGame,
         updateGame,
         status,
+        switchPlayers,
         activePlayer,
         players,
         moves
@@ -69,6 +70,7 @@ const gameBoard = (() => {
     }
     const resetBoard = ()  => {
         game.setupGame()
+        game.switchPlayers()
         activeSymbol = 'x'
         document.querySelector('.gameboard').textContent = ''
         drawBoard()
@@ -105,8 +107,19 @@ const gameBoard = (() => {
             }
         }
     }
+    const drawInputs = () => {
+        const reset = document.createElement('button')
+        reset.textContent = 'Reset'
+        reset.addEventListener('click', () => {
+            game.setupGame()
+            gameBoard.resetBoard()
+        })
+        const container = document.querySelector('.game-container')
+        container.appendChild(reset)
+    }
     return {
         drawBoard,
+        drawInputs,
         resetBoard,
     }
 })()
@@ -133,13 +146,15 @@ const playerFactory = (name, symbol) => {
     }
 }
 
-game.addPlayers()
-game.setupGame()
-gameBoard.drawBoard()
-
-const reset = document.querySelector('.reset')
-reset.addEventListener('click', () => {
+const start = document.querySelector('.start')
+start.addEventListener('click', () => {
+    const p1Name = document.querySelector('.p1').value
+    const p2Name = document.querySelector('.p2').value
+    const player1 = playerFactory(p1Name)
+    const player2 = playerFactory(p2Name)
+    game.addPlayers(player1, player2)
     game.setupGame()
-    gameBoard.resetBoard()
+    gameBoard.drawBoard()
+    gameBoard.drawInputs()
 })
 
