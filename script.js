@@ -2,6 +2,7 @@ const game = (() => {
     let activePlayer = null
     let players = []
     let moves = [[], []]
+    let started = false
     const winConditions = [
         [1, 2, 3],
         [4, 5, 6],
@@ -58,7 +59,8 @@ const game = (() => {
         switchPlayers,
         activePlayer,
         players,
-        moves
+        moves,
+        started
     }
 })()
 
@@ -97,6 +99,7 @@ const gameBoard = (() => {
     }
     const drawBoard = () => {
         const board = document.querySelector('.gameboard')
+        board.innerHTML = ''
         let index = 1
         for (let i = 0; i < size; i++) {
             for(let j = 0; j < size; j++) {
@@ -152,9 +155,12 @@ start.addEventListener('click', () => {
     const p2Name = document.querySelector('.p2').value
     const player1 = playerFactory(p1Name)
     const player2 = playerFactory(p2Name)
-    game.addPlayers(player1, player2)
-    game.setupGame()
-    gameBoard.drawBoard()
-    gameBoard.drawInputs()
+    if(!game.started) {
+        game.addPlayers(player1, player2)
+        game.setupGame()
+        gameBoard.drawBoard()
+        gameBoard.drawInputs()
+        game.started = true
+    }
 })
 
